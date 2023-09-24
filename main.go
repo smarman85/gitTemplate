@@ -6,7 +6,7 @@ import (
 	"github.com/smarman85/gitTemplate/newFromTemplate"
 )
 
-func main() {
+func Configure() {
 	r := newFromTemplate.Request{
 		NewRepo:         "newRepoFromTemplate",
 		Tempalte:        "template-repo",
