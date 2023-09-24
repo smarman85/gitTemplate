@@ -3,6 +3,7 @@ package newFromTemplate
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/google/go-github/v55/github"
@@ -12,17 +13,19 @@ type Request struct {
 	Tempalte, NewRepo, Owner string
 	client                   *github.Client
 	ctx                      context.Context
+	IncludeBranches, Private bool
 }
 
 type repo interface {
-	getRepoInfo()
+	verifyTemplate() error
+	createFromTemplate() (*github.Repository, error)
 }
 
-func (r Request) getRepoInfo() {
+func (r Request) verifyTemplate() error {
 
 	repo, _, err := r.client.Repositories.Get(r.ctx, r.Owner, r.Tempalte)
 	if err != nil {
-		fmt.Println(err)
+		return fmt.Errorf("error verifying template: %v", err)
 	}
 
 	fmt.Printf(
@@ -30,10 +33,34 @@ func (r Request) getRepoInfo() {
 		*repo.Name,
 		*repo.IsTemplate,
 	)
+	return nil
+}
+
+func (r Request) createFromTemplate() (*github.Repository, error) {
+	repoRequest := github.TemplateRepoRequest{
+		Name:               &r.NewRepo,
+		Owner:              &r.Owner,
+		Private:            &r.Private,
+		IncludeAllBranches: &r.IncludeBranches,
+	}
+	repo, _, err := r.client.Repositories.CreateFromTemplate(r.ctx, r.Owner, r.Tempalte, &repoRequest)
+	if err != nil {
+		return nil, fmt.Errorf("error creating repo from template: %v", err)
+	}
+	return repo, nil
 }
 
 func run(r repo) {
-	r.getRepoInfo()
+	err := r.verifyTemplate()
+	if err != nil {
+		log.Fatal("the template repo is not a template")
+	}
+
+	repo, err := r.createFromTemplate()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(repo)
 }
 
 func Build(r Request) {
