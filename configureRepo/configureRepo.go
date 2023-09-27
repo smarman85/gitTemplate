@@ -10,6 +10,7 @@ import (
 
 type repo interface {
 	setBranchProtection()
+	// createPrivatePullSecrets()
 }
 
 type TargetRepo struct {
@@ -28,14 +29,26 @@ func (t TargetRepo) setBranchProtection() {
 		// Restrictions: "",
 
 	}
-	p, r, err := t.client.Repositories.UpdateBranchProtection(t.ctx, t.Owner, t.Repo, "main", &rule)
+	_, r, err := t.client.Repositories.UpdateBranchProtection(t.ctx, t.Owner, t.Repo, "main", &rule)
 	if err != nil {
 		fmt.Errorf("error setting branch protection rule: %v", err)
 	}
 
-	fmt.Println(p)
-	fmt.Println(r)
+	// fmt.Println(p)
+	fmt.Println(r.Response.StatusCode)
 }
+
+/*
+func (t TargetRepo) createPrivatePullSecrets() {
+	secret := github.EncryptedSecret{}
+	r, err := t.client.Actions.CreateOrUpdateRepoSecret(t.ctx, t.Owner, t.Repo, secret)
+	if err != nil {
+		fmt.Errorf("error setting repo secret: %v", err)
+	}
+	fmt.Println(r.Request.Response.StatusCode)
+
+}
+*/
 
 func run(r repo) {
 	r.setBranchProtection()
