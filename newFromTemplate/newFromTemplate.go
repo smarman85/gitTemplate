@@ -10,7 +10,7 @@ import (
 )
 
 type Request struct {
-	Tempalte, NewRepo, Owner string
+	Template, NewRepo, Owner string
 	client                   *github.Client
 	ctx                      context.Context
 	IncludeBranches, Private bool
@@ -23,7 +23,7 @@ type repo interface {
 
 func (r Request) verifyTemplate() error {
 
-	repo, _, err := r.client.Repositories.Get(r.ctx, r.Owner, r.Tempalte)
+	repo, _, err := r.client.Repositories.Get(r.ctx, r.Owner, r.Template)
 	if err != nil {
 		return fmt.Errorf("error verifying template: %v", err)
 	}
@@ -43,7 +43,7 @@ func (r Request) createFromTemplate() (*github.Repository, error) {
 		Private:            &r.Private,
 		IncludeAllBranches: &r.IncludeBranches,
 	}
-	repo, _, err := r.client.Repositories.CreateFromTemplate(r.ctx, r.Owner, r.Tempalte, &repoRequest)
+	repo, _, err := r.client.Repositories.CreateFromTemplate(r.ctx, r.Owner, r.Template, &repoRequest)
 	if err != nil {
 		return nil, fmt.Errorf("error creating repo from template: %v", err)
 	}
@@ -53,7 +53,7 @@ func (r Request) createFromTemplate() (*github.Repository, error) {
 func run(r repo) {
 	err := r.verifyTemplate()
 	if err != nil {
-		log.Fatal("the template repo is not a template")
+		log.Fatal(err)
 	}
 
 	repo, err := r.createFromTemplate()
